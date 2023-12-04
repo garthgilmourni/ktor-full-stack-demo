@@ -1,7 +1,7 @@
 package com.kmp.ktor.model
 
 class InMemoryTaskRepository : TaskRepository {
-    private val tasks = mutableListOf(
+    private var tasks = listOf(
         Task("Cleaning", "Clean the house", Priority.Low),
         Task("Gardening", "Mow the lawn", Priority.Medium),
         Task("Shopping", "Buy the groceries", Priority.High),
@@ -23,14 +23,25 @@ class InMemoryTaskRepository : TaskRepository {
 
 
     override fun addTask(task: Task) {
-        tasks.removeIf {
-            it.name == task.name
+        var notFound = true
+
+        tasks = tasks.map {
+            if(it.name == task.name) {
+                notFound = false
+                task
+            } else {
+                it
+            }
         }
-        tasks.add(task)
+        if(notFound) {
+            tasks = tasks.plus(task)
+        }
     }
 
 
     override fun removeTask(name: String): Boolean {
-        return tasks.removeIf { it.name == name }
+        val oldTasks = tasks
+        tasks = tasks.filterNot { it.name == name }
+        return oldTasks.size > tasks.size
     }
 }

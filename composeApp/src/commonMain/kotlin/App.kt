@@ -3,17 +3,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.kmp.ktor.model.Priority
 import com.kmp.ktor.model.Priority.*
 import com.kmp.ktor.model.Task
@@ -27,9 +32,23 @@ fun App() {
         val client = remember { TaskApi() }
         var tasks by remember { mutableStateOf(emptyList<Task>()) }
         val scope = rememberCoroutineScope()
+        var currentTask by remember { mutableStateOf<Task?>(null) }
 
         LaunchedEffect(Unit) {
             tasks = client.getAllTasks()
+        }
+
+        if (currentTask != null) {
+            UpdateTaskDialog(
+                currentTask!!,
+                onConfirm = {
+                    scope.launch {
+                        client.updateTask(it)
+                        tasks = client.getAllTasks()
+                    }
+                    currentTask = null
+                }
+            )
         }
 
         LazyColumn(modifier = Modifier.fillMaxSize().padding(8.dp)) {
@@ -43,9 +62,7 @@ fun App() {
                         }
                     },
                     onUpdate = {
-                        scope.launch {
-                            client.updateTask(it)
-                        }
+                        currentTask = task
                     }
                 )
             }
@@ -59,7 +76,7 @@ fun TaskCard(
     onDelete: (Task) -> Unit,
     onUpdate: (Task) -> Unit
 ) {
-    fun pickColor(priority: Priority) = when(priority) {
+    fun pickColor(priority: Priority) = when (priority) {
         Low -> Color.Black
         Medium -> Color.Blue
         High, Vital -> Color.Red
@@ -77,12 +94,58 @@ fun TaskCard(
             )
 
             Row {
-                Button(onClick = { onDelete(task) }) {
-                    Text("Delete Task")
+                OutlinedButton(onClick = { onDelete(task) }) {
+                    Text("Delete")
                 }
                 Spacer(Modifier.width(8.dp))
-                Button(onClick = { onUpdate(task) }) {
-                    Text("Update Task")
+                OutlinedButton(onClick = { onUpdate(task) }) {
+                    Text("Update")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UpdateTaskDialog(
+    task: Task,
+    onConfirm: (Task) -> Unit
+) {
+    var description by remember { mutableStateOf(task.description) }
+    var priorityText by remember { mutableStateOf(task.priority.toString()) }
+    val colors = TextFieldDefaults.textFieldColors(
+        backgroundColor = Color.White,
+        textColor = Color.Blue
+    )
+
+    Dialog(onDismissRequest = {}) {
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(4.dp),
+            shape = RoundedCornerShape(CornerSize(4.dp))
+        ) {
+            Column(modifier = Modifier.padding(10.dp)) {
+                Text("Update ${task.name}", fontSize = 20.sp)
+                TextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description") },
+                    colors = colors
+                )
+                TextField(
+                    value = priorityText,
+                    onValueChange = { priorityText = it },
+                    label = { Text("Priority") },
+                    colors = colors
+                )
+                OutlinedButton(onClick = {
+                    val newTask = Task(
+                        task.name,
+                        description,
+                        try { Priority.valueOf(priorityText) } catch (e: IllegalArgumentException) { Low }
+                    )
+                    onConfirm(newTask)
+                }) {
+                    Text("Update")
                 }
             }
         }
