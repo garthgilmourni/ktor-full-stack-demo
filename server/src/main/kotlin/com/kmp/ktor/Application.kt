@@ -1,6 +1,5 @@
 package com.kmp.ktor
 
-import Greeting
 import SERVER_PORT
 import com.kmp.ktor.model.InMemoryTaskRepository
 import com.kmp.ktor.model.Priority
@@ -70,7 +69,7 @@ fun Application.module() {
             post {
                 try {
                     val task = call.receive<Task>()
-                    repository.addTask(task)
+                    repository.addOrUpdateTask(task)
                     call.respond(HttpStatusCode.NoContent)
                 } catch (ex: IllegalStateException) {
                     call.respond(HttpStatusCode.BadRequest)
