@@ -7,6 +7,8 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.*
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
@@ -35,6 +37,9 @@ class TaskApi {
     }
 
     suspend fun updateTask(task: Task) {
-        //TODO
+        httpClient.post("tasks") {
+            contentType(ContentType.Application.Json)
+            setBody(task)
+        }
     }
 }
