@@ -69,7 +69,6 @@ fun Application.module() {
             }
             post {
                 try {
-                    println("XXX")
                     val task = call.receive<Task>()
                     repository.addTask(task)
                     call.respond(HttpStatusCode.NoContent)
