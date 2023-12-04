@@ -2,10 +2,10 @@ package com.kmp.ktor.model
 
 class InMemoryTaskRepository : TaskRepository {
     private val tasks = mutableListOf(
-        Task("cleaning", "Clean the house", Priority.Low),
-        Task("gardening", "Mow the lawn", Priority.Medium),
-        Task("shopping", "Buy the groceries", Priority.High),
-        Task("painting", "Paint the fence", Priority.Medium)
+        Task("Cleaning", "Clean the house", Priority.Low),
+        Task("Gardening", "Mow the lawn", Priority.Medium),
+        Task("Shopping", "Buy the groceries", Priority.High),
+        Task("Painting", "Paint the fence", Priority.Medium)
     )
 
 
